@@ -1,0 +1,1 @@
+-O3 -DNDEBUG=1 -MMD -MP -MF .d  -fPIC  -Wno-deprecated-register -Wno-unused-function -fno-omit-frame-pointer -DHAVE_SWAPCONTEXT -DWITH_MPI -DXMLPARSER=libxml -DPREFER_QTENV -DWITH_QTENV -DWITH_PARSIM -DWITH_NETBUILDER -DWITH_OSG  -DVEINS_IMPORT -I. -I/home/cccccmake/TUD/SoSe2022/NSM/veins/src -I. -I/home/cccccmake/TUD/SoSe2022/NSM/omnetpp-5.6.2/include
