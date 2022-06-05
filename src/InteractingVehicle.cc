@@ -51,7 +51,7 @@ void InteractingVehicle::initialize(int stage)
 }
 
 InterVehicleMessage* InteractingVehicle::generateMessage(){
-    InterVehicleMessage *msg = new InterVehicleMessage();
+    InterVehicleMessage* msg = new InterVehicleMessage();
     DemoBaseApplLayer::handlePositionUpdate(mobilityPtr);
     msg->setVehicleId(vehicleId);
     msg->setPosition(curPosition);
@@ -61,7 +61,7 @@ InterVehicleMessage* InteractingVehicle::generateMessage(){
 
 void InteractingVehicle::setTimer(){
     InterVehicleMessage* msg = InteractingVehicle::generateMessage();
-    scheduleAt(simTime() + 2 + uniform(0.01, 0.2), msg);
+    scheduleAt(simTime() + 2 + uniform(0.01, 0.2), msg->dup());
     return;
 }
 
@@ -69,25 +69,19 @@ void InteractingVehicle::handleMessage(cMessage* msg)
 {
     // handle self messages (e.g. timers) in a separate methods
     if (msg->isSelfMessage()) {
-        // I added some code in DemoBaseApplLayer.cc regarding to the schedule conflict.
         handleSelfMsg(msg);
     }
     // put handling of messages from other nodes here
     else{
-        EV << "In handling other MSG" << std::endl;
-        InterVehicleMessage* iMsg = dynamic_cast<InterVehicleMessage*>(msg);
-        if(iMsg != nullptr){
+        if(InterVehicleMessage* iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
             // cast success
-            EV << "pos: " << iMsg->getPosition() << " and speed: " << iMsg->getSpeed();
+            EV << "position: " << iMsg->getPosition() << " and speed: " << iMsg->getSpeed();
         }
         else{
             // cast not success
-            EV << "msg type: " << msg->getClassName() << std::endl;
-            // MSG type: DemoSafetyMessage
-            EV << "Due to casting failure, handling Messages from other vehicles not possible" << std::endl;
             InterVehicleMessage* nMsg = InteractingVehicle::generateMessage();
-            EV << "Sending new message, id, position, speed: " << nMsg->getVehicleId() << " " << nMsg->getPosition() << " " << nMsg->getSpeed() << std::endl;
-            sendDown(nMsg);
+            EV << "Cast fails! Sending new message, id, position, speed: " << nMsg->getVehicleId() << " " << nMsg->getPosition() << " " << nMsg->getSpeed() << std::endl;
+            BaseApplLayer::sendDown(nMsg->dup());
         }
     }
     setTimer();
