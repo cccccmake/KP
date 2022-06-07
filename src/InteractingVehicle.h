@@ -56,7 +56,6 @@ protected:
     omnetpp::cModule* globalStats;
     omnetpp::cModule* modulePtr;
     omnetpp::cModule* rootPtr;
-    veins::TraCIMobility* mobilityPtr;
     veins::TraCICommandInterface* traci;
     veins::TraCICommandInterface::Vehicle* vehicleCmdId;
     /**

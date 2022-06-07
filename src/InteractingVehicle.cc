@@ -25,23 +25,18 @@ void InteractingVehicle::initialize(int stage)
     if (stage == 0) {
         // Initializing members and pointers of your application goes here
         modulePtr = getParentModule();
-        // modulePtr = veins::TraCIMobilityAccess().get(getParentModule())->getParentModule();
-        // EV << modulePtr->getFullName(); // node[i]
+        // modulePtr = veins::TraCIMobilityAccess().get(getParentModule())->getParentModule(); Pointing at node[i]
         vehicleId = modulePtr->getId();
         vehicleIndex = modulePtr->getIndex();
         // vehicleId, refer to the log left side on simulation
         // vehicleIndex is the index of the node in the vector.
-        mobilityPtr = veins::TraCIMobilityAccess().get(getParentModule());
-        mobilityId = mobilityPtr->getId();
+        mobilityId = mobility->getId();
+        // mobilityId = mobilityPtr->getExternalId();
         rootPtr = modulePtr->getParentModule();
         // EV << "Rootptr->getFullName() is " << rootPtr->getFullName() << std::endl;
-        // EV << "trying to get submodule: " << mobilityPtr->getSubmodule("node") << std::endl;
         traci = mobility->getCommandInterface();
         vehicleCmdId = mobility->getVehicleCommandInterface();
         roadId = vehicleCmdId->getRoadId();
-        /* DemoBaseApplLayer::handlePositionUpdate(mobilityPtr); */
-        /* Must invoke first. Otherwise the value 0. */
-        /* seems dynamic_cast<cObject*>(mobilityPtr) not necessary */
     }
     else if (stage == 1) {
         // Initializing members that require initialized other modules goes here
@@ -52,10 +47,10 @@ void InteractingVehicle::initialize(int stage)
 
 InterVehicleMessage* InteractingVehicle::generateMessage(){
     InterVehicleMessage* msg = new InterVehicleMessage();
-    DemoBaseApplLayer::handlePositionUpdate(mobilityPtr);
+    DemoBaseApplLayer::handlePositionUpdate(mobility);
     msg->setVehicleId(vehicleId);
-    msg->setPosition(curPosition);
-    msg->setSpeed(curSpeed);
+    msg->setPosition(mobility->getPositionAt(simTime()));
+    msg->setSpeed(mobility->getSpeed());
     return msg;
 }
 
@@ -73,16 +68,14 @@ void InteractingVehicle::handleMessage(cMessage* msg)
     }
     // put handling of messages from other nodes here
     else{
-        EV << "In other case in HM!" << std::endl;
         if(InterVehicleMessage* iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
             // cast success
-            EV << "VehicleId: " << iMsg->getVehicleId() << " position: " << iMsg->getPosition() << " and speed: " << iMsg->getSpeed();
+            EV << "Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed();
         }
         else{
             // cast not success
             InterVehicleMessage* nMsg = InteractingVehicle::generateMessage();
-            //EV << "Cast fails! Sending new message, id, position, speed: " << nMsg->getVehicleId() << " " << nMsg->getPosition() << " " << nMsg->getSpeed() << std::endl;
-            sendDown(nMsg);
+            EV << "Cast fails!" << std::endl;
         }
     }
 }
@@ -98,7 +91,6 @@ void InteractingVehicle::handleSelfMsg(cMessage* msg)
     if(InterVehicleMessage *iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
         iMsg->setChannelNumber(static_cast<int>(veins::Channel::cch));
         sendDown(iMsg->dup());
-        EV << "sendown performed!" << std::endl;
         setTimer();
     }
     else
@@ -106,4 +98,3 @@ void InteractingVehicle::handleSelfMsg(cMessage* msg)
     // this method is for self messages (mostly timers)
     // it is important to call the DemoBaseApplLayer function for BSM and WSM transmission
 }
-
