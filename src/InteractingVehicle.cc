@@ -61,7 +61,7 @@ InterVehicleMessage* InteractingVehicle::generateMessage(){
 
 void InteractingVehicle::setTimer(){
     InterVehicleMessage* msg = InteractingVehicle::generateMessage();
-    scheduleAt(simTime() + 2 + uniform(0.01, 0.2), msg->dup());
+    scheduleAt(simTime() + interval + uniform(0.01, 0.2), msg);
     return;
 }
 
@@ -73,18 +73,18 @@ void InteractingVehicle::handleMessage(cMessage* msg)
     }
     // put handling of messages from other nodes here
     else{
+        EV << "In other case in HM!" << std::endl;
         if(InterVehicleMessage* iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
             // cast success
-            EV << "position: " << iMsg->getPosition() << " and speed: " << iMsg->getSpeed();
+            EV << "VehicleId: " << iMsg->getVehicleId() << " position: " << iMsg->getPosition() << " and speed: " << iMsg->getSpeed();
         }
         else{
             // cast not success
             InterVehicleMessage* nMsg = InteractingVehicle::generateMessage();
-            EV << "Cast fails! Sending new message, id, position, speed: " << nMsg->getVehicleId() << " " << nMsg->getPosition() << " " << nMsg->getSpeed() << std::endl;
-            BaseApplLayer::sendDown(nMsg->dup());
+            //EV << "Cast fails! Sending new message, id, position, speed: " << nMsg->getVehicleId() << " " << nMsg->getPosition() << " " << nMsg->getSpeed() << std::endl;
+            sendDown(nMsg);
         }
     }
-    setTimer();
 }
 
 void InteractingVehicle::finish()
@@ -95,7 +95,14 @@ void InteractingVehicle::finish()
 
 void InteractingVehicle::handleSelfMsg(cMessage* msg)
 {
-    DemoBaseApplLayer::handleSelfMsg(msg);
+    if(InterVehicleMessage *iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
+        iMsg->setChannelNumber(static_cast<int>(veins::Channel::cch));
+        sendDown(iMsg->dup());
+        EV << "sendown performed!" << std::endl;
+        setTimer();
+    }
+    else
+        DemoBaseApplLayer::handleSelfMsg(msg);
     // this method is for self messages (mostly timers)
     // it is important to call the DemoBaseApplLayer function for BSM and WSM transmission
 }
