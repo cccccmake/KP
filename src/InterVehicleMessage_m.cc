@@ -182,7 +182,6 @@ Register_Class(InterVehicleMessage)
 InterVehicleMessage::InterVehicleMessage(const char *name, short kind) : ::veins::DemoSafetyMessage(name,kind)
 {
     this->vehicleId = 0;
-    this->speed = 0;
 }
 
 InterVehicleMessage::InterVehicleMessage(const InterVehicleMessage& other) : ::veins::DemoSafetyMessage(other)
@@ -245,12 +244,12 @@ void InterVehicleMessage::setPosition(const veins::Coord& position)
     this->position = position;
 }
 
-double InterVehicleMessage::getSpeed() const
+veins::Coord& InterVehicleMessage::getSpeed()
 {
     return this->speed;
 }
 
-void InterVehicleMessage::setSpeed(double speed)
+void InterVehicleMessage::setSpeed(const veins::Coord& speed)
 {
     this->speed = speed;
 }
@@ -334,7 +333,7 @@ unsigned int InterVehicleMessageDescriptor::getFieldTypeFlags(int field) const
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,
         FD_ISCOMPOUND,
-        FD_ISEDITABLE,
+        FD_ISCOMPOUND,
     };
     return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
 }
@@ -376,7 +375,7 @@ const char *InterVehicleMessageDescriptor::getFieldTypeString(int field) const
     static const char *fieldTypeStrings[] = {
         "int",
         "veins::Coord",
-        "double",
+        "veins::Coord",
     };
     return (field>=0 && field<3) ? fieldTypeStrings[field] : nullptr;
 }
@@ -447,7 +446,7 @@ std::string InterVehicleMessageDescriptor::getFieldValueAsString(void *object, i
     switch (field) {
         case 0: return long2string(pp->getVehicleId());
         case 1: {std::stringstream out; out << pp->getPosition(); return out.str();}
-        case 2: return double2string(pp->getSpeed());
+        case 2: {std::stringstream out; out << pp->getSpeed(); return out.str();}
         default: return "";
     }
 }
@@ -463,7 +462,6 @@ bool InterVehicleMessageDescriptor::setFieldValueAsString(void *object, int fiel
     InterVehicleMessage *pp = (InterVehicleMessage *)object; (void)pp;
     switch (field) {
         case 0: pp->setVehicleId(string2long(value)); return true;
-        case 2: pp->setSpeed(string2double(value)); return true;
         default: return false;
     }
 }
@@ -478,6 +476,7 @@ const char *InterVehicleMessageDescriptor::getFieldStructName(int field) const
     }
     switch (field) {
         case 1: return omnetpp::opp_typename(typeid(veins::Coord));
+        case 2: return omnetpp::opp_typename(typeid(veins::Coord));
         default: return nullptr;
     };
 }
@@ -493,6 +492,7 @@ void *InterVehicleMessageDescriptor::getFieldStructValuePointer(void *object, in
     InterVehicleMessage *pp = (InterVehicleMessage *)object; (void)pp;
     switch (field) {
         case 1: return (void *)(&pp->getPosition()); break;
+        case 2: return (void *)(&pp->getSpeed()); break;
         default: return nullptr;
     }
 }

@@ -16,6 +16,8 @@
 #ifndef __INTERACTING_VEHICLE_H_
 #define __INTERACTING_VEHICLE_H_
 
+#define INFINIT 9999
+
 #include <omnetpp.h>
 #include "veins/modules/application/ieee80211p/DemoBaseApplLayer.h"
 #include "veins/base/utils/FindModule.h"
@@ -53,11 +55,17 @@ protected:
     simtime_t localTime;
     std::string roadId;
     std::string vehicleName;
-    omnetpp::cModule* globalStats;
     omnetpp::cModule* modulePtr;
     omnetpp::cModule* rootPtr;
     veins::TraCICommandInterface* traci;
     veins::TraCICommandInterface::Vehicle* vehicleCmdId;
+    // variables for task 5
+    veins::Coord myCoord;
+    veins::Coord mySpeed;
+    veins::Coord intersectionCoord;
+    omnetpp::simtime_t intersectionTime;
+    std::map<int, veins::Coord> intersectionPointRecord;
+    std::map<int, omnetpp::simtime_t> intersectionTimeRecord;
     /**
      * Multi-stage initialization hook.
      */

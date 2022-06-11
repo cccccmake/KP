@@ -27,5 +27,5 @@ packet InterVehicleMessage extends veins::DemoSafetyMessage {
 	int vehicleId;
 	veins::Coord position;
 	// added speed into the package
-	double speed;
+	veins::Coord speed;
 }

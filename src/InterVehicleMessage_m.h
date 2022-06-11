@@ -34,7 +34,7 @@
  *     int vehicleId;
  *     veins::Coord position;
  *     // added speed into the package
- *     double speed;
+ *     veins::Coord speed;
  * }
  * </pre>
  */
@@ -43,7 +43,7 @@ class InterVehicleMessage : public ::veins::DemoSafetyMessage
   protected:
     int vehicleId;
     veins::Coord position;
-    double speed;
+    veins::Coord speed;
 
   private:
     void copy(const InterVehicleMessage& other);
@@ -67,8 +67,9 @@ class InterVehicleMessage : public ::veins::DemoSafetyMessage
     virtual veins::Coord& getPosition();
     virtual const veins::Coord& getPosition() const {return const_cast<InterVehicleMessage*>(this)->getPosition();}
     virtual void setPosition(const veins::Coord& position);
-    virtual double getSpeed() const;
-    virtual void setSpeed(double speed);
+    virtual veins::Coord& getSpeed();
+    virtual const veins::Coord& getSpeed() const {return const_cast<InterVehicleMessage*>(this)->getSpeed();}
+    virtual void setSpeed(const veins::Coord& speed);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const InterVehicleMessage& obj) {obj.parsimPack(b);}

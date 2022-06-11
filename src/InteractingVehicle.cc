@@ -40,17 +40,18 @@ void InteractingVehicle::initialize(int stage)
     }
     else if (stage == 1) {
         // Initializing members that require initialized other modules goes here
-        // globalStats = veins::FindModule<GlobalStatistics*>::findSubModule(getParentModule()->getParentModule());
+        // omnetpp::cModule* globalStats = veins::FindModule<GlobalStatistics*>::findSubModule(getParentModule()->getParentModule());
     }
     setTimer();
 }
 
 InterVehicleMessage* InteractingVehicle::generateMessage(){
     InterVehicleMessage* msg = new InterVehicleMessage();
-    DemoBaseApplLayer::handlePositionUpdate(mobility);
+    // DemoBaseApplLayer::handlePositionUpdate(mobility);
+    // seems the invocation of this method is not necessary.
     msg->setVehicleId(vehicleId);
     msg->setPosition(mobility->getPositionAt(simTime()));
-    msg->setSpeed(mobility->getSpeed());
+    msg->setSpeed(mobility->getCurrentDirection() * mobility->getSpeed());
     return msg;
 }
 
@@ -70,11 +71,50 @@ void InteractingVehicle::handleMessage(cMessage* msg)
     else{
         if(InterVehicleMessage* iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
             // cast success
-            EV << "Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed();
+            EV << "Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed() << std::endl;
+            // initial value of the intersection time
+            double tX = INFINIT, tY = INFINIT;
+            // store result
+            veins::Coord resPosition;
+            double resTime = 0;
+            double positionX = iMsg->getPosition().x;
+            double positionY = iMsg->getPosition().y;
+            double speedX = iMsg->getSpeed().x;
+            double speedY = iMsg->getSpeed().y;
+            myCoord = mobility->getPositionAt(simTime());
+            mySpeed = mobility->getCurrentDirection() * mobility->getSpeed();
+
+            if(veins::math::almost_equal(mySpeed.x, speedX))
+                // no need to process
+                ;
+            else
+                double tX = (positionX - myCoord.x) / (mySpeed.x - speedX);
+
+            if(veins::math::almost_equal(mySpeed.y, speedY))
+                ;
+            else
+                double tY = (positionY - myCoord.y) / (mySpeed.y - speedY);
+
+            if(tX <= tY)
+                resTime = tY;
+            else
+                resTime = tX;
+
+            if(resTime != INFINIT){
+                resPosition.x = myCoord.x + resTime * mySpeed.x;
+                resPosition.y = myCoord.y + resTime * mySpeed.y;
+            }
+            else{
+                ;
+            }
+
+            EV << "time: " << resTime <<  " and position: " << resPosition << std::endl;
+            intersectionTimeRecord.insert({vehicleId, simTime() + resTime});
+            intersectionPointRecord.insert({vehicleId, resPosition});
+
         }
         else{
             // cast not success
-            InterVehicleMessage* nMsg = InteractingVehicle::generateMessage();
             EV << "Cast fails!" << std::endl;
         }
     }

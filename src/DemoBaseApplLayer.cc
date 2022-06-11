@@ -196,7 +196,7 @@ void DemoBaseApplLayer::handlePositionUpdate(cObject* obj)
     ChannelMobilityPtrType const mobility = check_and_cast<ChannelMobilityPtrType>(obj);
     curPosition = mobility->getPositionAt(simTime());
     curSpeed = mobility->getCurrentSpeed();
-    // EV << "curSpeed in dbal: " << curSpeed << std::endl;
+    // EV << "current position and Speed in dbal: " << curPosition << " " <<  curSpeed << std::endl;
 }
 
 void DemoBaseApplLayer::handleParkingUpdate(cObject* obj)
