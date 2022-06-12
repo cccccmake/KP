@@ -73,6 +73,7 @@ void InteractingVehicle::handleMessage(cMessage* msg)
             // cast success
             EV << "Received by " << vehicleId << ", speed, position: " << mobility->getCurrentDirection() * mobility->getSpeed() << " | " << mobility->getPositionAt(simTime()) << ", Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed() << std::endl;
             otherVehicleId = iMsg->getVehicleId();
+            // Start of the task5
             // initial value of the intersection time
             double tX = INFINIT, tY = INFINIT;
             // store result
@@ -117,8 +118,9 @@ void InteractingVehicle::handleMessage(cMessage* msg)
             }
 
             EV << "time: " << resTime <<  " and position: " << resPosition << std::endl;
-            intersectionTimeRecord.insert({otherVehicleId, simTime() + resTime});
+            intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
             intersectionPointRecord.insert({otherVehicleId, resPosition});
+            // end of task 5
 
         }
         else{
