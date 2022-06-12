@@ -47,6 +47,7 @@ public:
 protected:
     int mobilityId;
     int vehicleId;
+    int otherVehicleId;
     int vehicleIndex;
     int nicId;
     int interval = 1;

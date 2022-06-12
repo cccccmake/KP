@@ -71,7 +71,8 @@ void InteractingVehicle::handleMessage(cMessage* msg)
     else{
         if(InterVehicleMessage* iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
             // cast success
-            EV << "Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed() << std::endl;
+            EV << "Received by " << vehicleId << ", speed, position: " << mobility->getCurrentDirection() * mobility->getSpeed() << " | " << mobility->getPositionAt(simTime()) << ", Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed() << std::endl;
+            otherVehicleId = iMsg->getVehicleId();
             // initial value of the intersection time
             double tX = INFINIT, tY = INFINIT;
             // store result
@@ -85,32 +86,39 @@ void InteractingVehicle::handleMessage(cMessage* msg)
             mySpeed = mobility->getCurrentDirection() * mobility->getSpeed();
 
             if(veins::math::almost_equal(mySpeed.x, speedX))
-                // no need to process
+                // avoid devide zero error
                 ;
-            else
-                double tX = (positionX - myCoord.x) / (mySpeed.x - speedX);
-
+            else{
+                tX = (positionX - myCoord.x) / (mySpeed.x - speedX);
+                EV << "tX = " << tX << std::endl;
+            }
             if(veins::math::almost_equal(mySpeed.y, speedY))
                 ;
-            else
-                double tY = (positionY - myCoord.y) / (mySpeed.y - speedY);
+            else{
+                tY = (positionY - myCoord.y) / (mySpeed.y - speedY);
+                EV << "tY = " << tY << std::endl;
+            }
 
-            if(tX <= tY)
+            if(tX <= tY && tY != INFINIT){
+                EV << "tY matters" << std::endl;
                 resTime = tY;
-            else
+            }
+            else if(tX != INFINIT){
+                EV << "tY matters" << std::endl;
                 resTime = tX;
+            }
 
             if(resTime != INFINIT){
                 resPosition.x = myCoord.x + resTime * mySpeed.x;
                 resPosition.y = myCoord.y + resTime * mySpeed.y;
             }
             else{
-                ;
+                EV << "No intersection" << std::endl;
             }
 
             EV << "time: " << resTime <<  " and position: " << resPosition << std::endl;
-            intersectionTimeRecord.insert({vehicleId, simTime() + resTime});
-            intersectionPointRecord.insert({vehicleId, resPosition});
+            intersectionTimeRecord.insert({otherVehicleId, simTime() + resTime});
+            intersectionPointRecord.insert({otherVehicleId, resPosition});
 
         }
         else{
