@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for $(LIB_PREFIX)veins_project
 #
 # This file was generated with the command:
-#  opp_makemake --make-so -f --deep -O out -KVEINS_PROJ=/home/cccccmake/TUD/SoSe2022/NSM/veins -DVEINS_IMPORT -I. -I$$\(VEINS_PROJ\)/src -I. -L$$\(VEINS_PROJ\)/src -lveins$$\(D\)
+#  opp_makemake --make-so -f --deep -O out -KVEINS_PROJ=/home/hhhhhunger/omnetpp/omnetpp-5.6.2/samples/kp_nsm/veins -DVEINS_IMPORT -I. -I$$\(VEINS_PROJ\)/src -I. -L$$\(VEINS_PROJ\)/src -lveins$$\(D\)
 #
 
 # Name of target to be created (-o option)
@@ -34,7 +34,7 @@ MSGFILES = \
 SMFILES =
 
 # Other makefile variables (-K)
-VEINS_PROJ=/home/cccccmake/TUD/SoSe2022/NSM/veins
+VEINS_PROJ=/home/hhhhhunger/omnetpp/omnetpp-5.6.2/samples/kp_nsm/veins
 
 #------------------------------------------------------------------------------
 

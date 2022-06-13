@@ -6,8 +6,8 @@
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="/home/cccccmake/TUD/SoSe2022/NSM/project/veins_project/simulations/task01.net.xml"/>
-        <route-files value="/home/cccccmake/TUD/SoSe2022/NSM/project/veins_project/simulations/task01.rou.xml"/>
+        <net-file value="/home/hhhhhunger/study/SoSe2022/KP_NS/KP/simulations/task01.net.xml"/>
+        <route-files value="/home/hhhhhunger/study/SoSe2022/KP_NS/KP/simulations/task01.rou.xml"/>
     </input>
 
 </configuration>

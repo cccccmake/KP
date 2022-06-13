@@ -63,8 +63,6 @@ protected:
     // variables for task 5
     veins::Coord myCoord;
     veins::Coord mySpeed;
-    veins::Coord intersectionCoord;
-    omnetpp::simtime_t intersectionTime;
     std::map<int, veins::Coord> intersectionPointRecord;
     std::map<int, omnetpp::simtime_t> intersectionTimeRecord;
     /**

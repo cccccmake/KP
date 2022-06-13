@@ -74,54 +74,78 @@ void InteractingVehicle::handleMessage(cMessage* msg)
             EV << "Received by " << vehicleId << ", speed, position: " << mobility->getCurrentDirection() * mobility->getSpeed() << " | " << mobility->getPositionAt(simTime()) << ", Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed() << std::endl;
             otherVehicleId = iMsg->getVehicleId();
             // Start of the task5
-            // initial value of the intersection time
-            double tX = INFINIT, tY = INFINIT;
-            // store result
+            /* Algorithm1:
+             * calculate the intersection point
+             * step1: record the position and speed vectors data from message. And some variables declarations
+             * step2: compute the intersection point with the help of 3D-linear equations of two line( vehicle pair )
+             * step3: compute the intersection time
+             * */
+
+            /* Algorithm2:
+             * basic idea of the algorithm2: for two vehicles with position and velocity information
+             *       Car1(x1,y1,z1) | V1(a1,b1,c1)  and Car1(x2,y2,z2) | V2(a2,b2,c2)
+             * Let's say, they will meet somewhere at a certain time. Which means their final position will be the same.
+             * and the time cost from the computing point until they meet will also be the same.
+             * we can compute the time cost for each direction and they should be the same.
+             * if the time cost for each direction are not the same value, it means those two cars will not meet or crash.
+             *
+             * step1: compute the time cost of each direction
+             * step2: compute the intersection point
+             * */
+            // initialize the time cost for each direction
+            double tX = INFINIT, tY = INFINIT, tZ = INFINIT;
+            // variables used to record the result.
             veins::Coord resPosition;
             double resTime = 0;
-            double positionX = iMsg->getPosition().x;
-            double positionY = iMsg->getPosition().y;
-            double speedX = iMsg->getSpeed().x;
-            double speedY = iMsg->getSpeed().y;
+            // get position and speed information of other's car and my car.
+            veins::Coord positionFromMessage = iMsg->getPosition();
+            veins::Coord speedFromMessage = iMsg->getSpeed();
             myCoord = mobility->getPositionAt(simTime());
             mySpeed = mobility->getCurrentDirection() * mobility->getSpeed();
 
-            if(veins::math::almost_equal(mySpeed.x, speedX))
-                // avoid devide zero error
-                ;
-            else{
-                tX = (positionX - myCoord.x) / (mySpeed.x - speedX);
-                EV << "tX = " << tX << std::endl;
-            }
-            if(veins::math::almost_equal(mySpeed.y, speedY))
-                ;
-            else{
-                tY = (positionY - myCoord.y) / (mySpeed.y - speedY);
-                EV << "tY = " << tY << std::endl;
-            }
+            //step1
+            if(veins::math::almost_equal(mySpeed.x, speedFromMessage.x));
+            else tX = (positionFromMessage.x - myCoord.x) / (mySpeed.x - speedFromMessage.x);
+            if(veins::math::almost_equal(mySpeed.y, speedFromMessage.y));
+            else tY = (positionFromMessage.y - myCoord.y) / (mySpeed.y - speedFromMessage.y);
+            if(veins::math::almost_equal(mySpeed.z, speedFromMessage.z));
+            else tZ = (positionFromMessage.z - myCoord.z) / (mySpeed.z - speedFromMessage.z);
 
-            if(tX <= tY && tY != INFINIT){
-                EV << "tY matters" << std::endl;
-                resTime = tY;
+            // if it is a 2D plane, then we only need to consider X and Y
+            if(myCoord.z == positionFromMessage.z && mySpeed.z == speedFromMessage.z){
+                tZ = 0;
+                resPosition.z = 0;
+                if(tX < 0 || tY < 0) EV << "No intersection" << std::endl;
+                else if(tX < INFINIT
+                        && veins::math::almost_equal(tX, tY))
+                {
+                    resTime = tX;
+                    resPosition.x = myCoord.x + resTime * mySpeed.x;
+                    resPosition.y = myCoord.y + resTime * mySpeed.y;
+                    intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
+                    intersectionPointRecord.insert({otherVehicleId, resPosition});
+                }
+                else EV << "No intersection" << std::endl;
             }
-            else if(tX != INFINIT){
-                EV << "tY matters" << std::endl;
-                resTime = tX;
+            else{// if it is in a 3D space, direction Z is in consideration.
+                if(tX < 0 || tY < 0 || tZ <0) EV << "No intersection" << std::endl;
+                else if(tX < INFINIT
+                        && veins::math::almost_equal(tX, tY)
+                        && veins::math::almost_equal(tX, tZ)){
+                    resTime = tX;
+                    resPosition.x = myCoord.x + resTime * mySpeed.x;
+                    resPosition.y = myCoord.y + resTime * mySpeed.y;
+                    resPosition.z = myCoord.z + resTime * mySpeed.z;
+                    intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
+                    intersectionPointRecord.insert({otherVehicleId, resPosition});
+                }
+                else{
+                    EV << "No intersection" << std::endl;
+                }
             }
-
-            if(resTime != INFINIT){
-                resPosition.x = myCoord.x + resTime * mySpeed.x;
-                resPosition.y = myCoord.y + resTime * mySpeed.y;
-            }
-            else{
-                EV << "No intersection" << std::endl;
-            }
-
+            EV << "tX: " << tX <<  "tY: " << tY << "tZ: " << tZ << std::endl;
             EV << "time: " << resTime <<  " and position: " << resPosition << std::endl;
-            intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
-            intersectionPointRecord.insert({otherVehicleId, resPosition});
             // end of task 5
-
         }
         else{
             // cast not success

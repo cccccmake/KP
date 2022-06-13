@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for veins_project
 #
 # This file was generated with the command:
-#  opp_makemake --nolink -f --deep -O out -KVEINS_PROJ=/home/cccccmake/TUD/SoSe2022/NSM/veins -DVEINS_IMPORT -I. -I$$\(VEINS_PROJ\)/src -Isrc -L$$\(VEINS_PROJ\)/src -Lout/$$\(CONFIGNAME\)/src -lveins$$\(D\) -d src -X.
+#  opp_makemake --nolink -f --deep -O out -KVEINS_PROJ=/home/hhhhhunger/omnetpp/omnetpp-5.6.2/samples/kp_nsm/veins -DVEINS_IMPORT -I. -I$$\(VEINS_PROJ\)/src -Isrc -L$$\(VEINS_PROJ\)/src -Lout/$$\(CONFIGNAME\)/src -lveins$$\(D\) -d src -X.
 #
 
 # Output directory
@@ -11,7 +11,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Other makefile variables (-K)
-VEINS_PROJ=/home/cccccmake/TUD/SoSe2022/NSM/veins
+VEINS_PROJ=/home/hhhhhunger/omnetpp/omnetpp-5.6.2/samples/kp_nsm/veins
 
 #------------------------------------------------------------------------------
 
