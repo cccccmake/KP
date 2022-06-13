@@ -25,6 +25,7 @@ class noncobject veins::Coord;
 packet InterVehicleMessage extends veins::DemoSafetyMessage {
     // added vehicleId to identify vehicles
 	int vehicleId;
+	string roadId;
 	veins::Coord position;
 	// added speed into the package
 	veins::Coord speed;

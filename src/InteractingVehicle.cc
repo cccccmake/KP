@@ -42,6 +42,7 @@ void InteractingVehicle::initialize(int stage)
         // Initializing members that require initialized other modules goes here
         // omnetpp::cModule* globalStats = veins::FindModule<GlobalStatistics*>::findSubModule(getParentModule()->getParentModule());
     }
+    EV << "roadId is : " << roadId << std::endl;
     setTimer();
 }
 
@@ -52,6 +53,7 @@ InterVehicleMessage* InteractingVehicle::generateMessage(){
     msg->setVehicleId(vehicleId);
     msg->setPosition(mobility->getPositionAt(simTime()));
     msg->setSpeed(mobility->getCurrentDirection() * mobility->getSpeed());
+    msg->setRoadId(roadId.c_str());
     return msg;
 }
 
@@ -83,6 +85,8 @@ void InteractingVehicle::handleMessage(cMessage* msg)
             double positionY = iMsg->getPosition().y;
             double speedX = iMsg->getSpeed().x;
             double speedY = iMsg->getSpeed().y;
+            const char* tempRoadId = iMsg->getRoadId();
+            std::string otherRoadId = tempRoadId;
             myCoord = mobility->getPositionAt(simTime());
             mySpeed = mobility->getCurrentDirection() * mobility->getSpeed();
 
@@ -125,26 +129,33 @@ void InteractingVehicle::handleMessage(cMessage* msg)
             // begin of task 6
             double givenTime = par("givenTime");
             double threshold = par("threshold");
-            double myTimeX = std::abs((resPosition.x - myCoord.x) / mySpeed.x);
-            double myTimeY = std::abs((resPosition.y - myCoord.y) / mySpeed.y);
-            double myTime = myTimeX < myTimeY ? myTimeX : myTimeY;
-
-            double otherTimeX = std::abs((resPosition.x - positionX) / speedX);
-            double otherTimeY = std::abs((resPosition.y - positionY) / speedY);
-            double otherTime = otherTimeX < otherTimeY ? otherTimeX : otherTimeY;
 
             // check for thershold
-            if(std::abs(otherTime - myTime) < threshold){
+            if(resTime < threshold){
                 getParentModule()->bubble("The time difference is below the given threshold!");
             }
             // check for given time collision
-            if(resTime < givenTime){
+            if(simTime().dbl() + resTime < givenTime){
                 std::string init("The potential collision is below the given time! Estimated time is: ");
                 std::string toAppend(std::to_string(resTime));
                 const char* resText = (init.append(toAppend)).c_str();
                 getParentModule()->bubble(resText);
             }
 
+            // end of task 6
+            // begin of task 7
+            // I'm the left vehicle and the message sender comes from right side
+            if(roadId == "-gneE1" && otherRoadId == "-gneE2"){
+                double currentSpeed = mobility->getSpeed();
+                if(resTime < threshold){
+                    DemoBaseApplLayer::traciVehicle->setSpeed(0);
+                }
+                else if(resTime < 0){
+                    // resume speed
+                    DemoBaseApplLayer::traciVehicle->setSpeed(currentSpeed);
+                }
+            }
+            // end of task 7
         }
         else{
             // cast not success

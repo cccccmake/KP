@@ -32,6 +32,7 @@
  * {
  *     // added vehicleId to identify vehicles
  *     int vehicleId;
+ *     string roadId;
  *     veins::Coord position;
  *     // added speed into the package
  *     veins::Coord speed;
@@ -42,6 +43,7 @@ class InterVehicleMessage : public ::veins::DemoSafetyMessage
 {
   protected:
     int vehicleId;
+    ::omnetpp::opp_string roadId;
     veins::Coord position;
     veins::Coord speed;
 
@@ -64,6 +66,8 @@ class InterVehicleMessage : public ::veins::DemoSafetyMessage
     // field getter/setter methods
     virtual int getVehicleId() const;
     virtual void setVehicleId(int vehicleId);
+    virtual const char * getRoadId() const;
+    virtual void setRoadId(const char * roadId);
     virtual veins::Coord& getPosition();
     virtual const veins::Coord& getPosition() const {return const_cast<InterVehicleMessage*>(this)->getPosition();}
     virtual void setPosition(const veins::Coord& position);
