@@ -22,6 +22,7 @@
 #include "veins/modules/application/ieee80211p/DemoBaseApplLayer.h"
 #include "veins/base/utils/FindModule.h"
 #include "InterVehicleMessage_m.h"
+#include <cmath>
 
 using veins::Coord;
 using veins::DemoBaseApplLayer;

@@ -122,6 +122,29 @@ void InteractingVehicle::handleMessage(cMessage* msg)
             intersectionPointRecord.insert({otherVehicleId, resPosition});
             // end of task 5
 
+            // begin of task 6
+            double givenTime = par("givenTime");
+            double threshold = par("threshold");
+            double myTimeX = std::abs((resPosition.x - myCoord.x) / mySpeed.x);
+            double myTimeY = std::abs((resPosition.y - myCoord.y) / mySpeed.y);
+            double myTime = myTimeX < myTimeY ? myTimeX : myTimeY;
+
+            double otherTimeX = std::abs((resPosition.x - positionX) / speedX);
+            double otherTimeY = std::abs((resPosition.y - positionY) / speedY);
+            double otherTime = otherTimeX < otherTimeY ? otherTimeX : otherTimeY;
+
+            // check for thershold
+            if(std::abs(otherTime - myTime) < threshold){
+                getParentModule()->bubble("The time difference is below the given threshold!");
+            }
+            // check for given time collision
+            if(resTime < givenTime){
+                std::string init("The potential collision is below the given time! Estimated time is: ");
+                std::string toAppend(std::to_string(resTime));
+                const char* resText = (init.append(toAppend)).c_str();
+                getParentModule()->bubble(resText);
+            }
+
         }
         else{
             // cast not success

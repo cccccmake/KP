@@ -21,4 +21,6 @@ import org.car2x.veins.modules.application.ieee80211p.DemoBaseApplLayer;
 simple InteractingVehicle extends DemoBaseApplLayer like IBaseApplLayer {   
     parameters:
         @class(InteractingVehicle);
+        double threshold =default(2);
+        double givenTime = default(7);
 }
