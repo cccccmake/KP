@@ -80,7 +80,185 @@ void InteractingVehicle::handleMessage(cMessage* msg)
              * step2: compute the intersection point with the help of 3D-linear equations of two line( vehicle pair )
              * step3: compute the intersection time
              * */
+            ///////////////////////////////// Algorithm1 //////////////////////////////////////////////////////
+                //step1
+            veins::Coord resPosition;
+            double myTime, hisTime; // record the time of arriving at the intersection point
+            bool intersect = false;
+            veins::Coord positionFromMessage = iMsg->getPosition();
+            veins::Coord speedFromMessage = iMsg->getSpeed();
+            myCoord = mobility->getPositionAt(simTime());
+            mySpeed = mobility->getCurrentDirection() * mobility->getSpeed();
+                //step2
+            if(myCoord.z == positionFromMessage.z && mySpeed.z == speedFromMessage.z){
+                // if it is a 2D plane, then we only need to consider X and Y
+                if (mySpeed.x == 0 && mySpeed.y != 0 &&
+                        speedFromMessage.x != 0 && speedFromMessage.y != 0){
+                    resPosition.x = myCoord.x;
+                    resPosition.y = speedFromMessage.y * ( myCoord.x - positionFromMessage.x ) / speedFromMessage.x + positionFromMessage.y;
+                    intersect = true;
+                }
+                else if (mySpeed.y == 0 && mySpeed.x != 0 &&
+                        speedFromMessage.x != 0 && speedFromMessage.y != 0){
+                    resPosition.y = myCoord.y;
+                    resPosition.x = speedFromMessage.x * ( myCoord.y - positionFromMessage.y ) / speedFromMessage.y + positionFromMessage.x;
+                    intersect = true;
+                }
+                else if (speedFromMessage.x == 0 && mySpeed.y != 0 &&
+                        mySpeed.x != 0 && speedFromMessage.y != 0){
+                    resPosition.x = positionFromMessage.x;
+                    resPosition.y = mySpeed.y * ( positionFromMessage.x - myCoord.x ) / mySpeed.x + myCoord.y;
+                    intersect = true;
+                }
+                else if (speedFromMessage.y == 0 && mySpeed.y != 0 &&
+                        mySpeed.x != 0 && speedFromMessage.x != 0){
+                    resPosition.y = positionFromMessage.y;
+                    resPosition.x = mySpeed.x * ( positionFromMessage.y - myCoord.y ) / mySpeed.y + myCoord.x;
+                    intersect = true;
+                }
+                else if(mySpeed.x != 0 && mySpeed.y != 0 &&
+                   speedFromMessage.x != 0 && speedFromMessage.y != 0){
+                    //if the velocity of vehicle pair are not 0, we can use a point and a direction vector to represent a line
+                    if (veins::math::almost_equal(speedFromMessage.x * mySpeed.y, mySpeed.x * speedFromMessage.y)){
+                        EV << "They are on the same direction" << std::endl;
+                    }
+                    else{
+                        resPosition.x = (speedFromMessage.x * mySpeed.y * myCoord.x - mySpeed.x * speedFromMessage.y * positionFromMessage.x
+                                    - mySpeed.x * speedFromMessage.x * ( myCoord.y - positionFromMessage.y)) / (mySpeed.y * speedFromMessage.x -
+                                            mySpeed.x * speedFromMessage.y);
+                        resPosition.y = mySpeed.y / mySpeed.x * ( resPosition.x - myCoord.x ) + myCoord.y;
+                        intersect = true;
+                    }
+                }
+                else {
+                    intersect = false;
+                    EV << "No intersection" << std::endl;
+                }
 
+                //step3
+                if (intersect){
+                    myTime = ( resPosition.x - myCoord.x ) / mySpeed.x;
+                    hisTime = ( resPosition.x - positionFromMessage.x ) / speedFromMessage.x;
+                    if ( myTime < 0 || hisTime < 0){
+                        EV << "They will not encounter" << std::endl;
+                    }
+                    else{
+                        EV << "my time: " << myTime << "his time: " << hisTime << " and position: " << resPosition << std::endl;
+                    }
+                }
+            }
+            else{
+                //if it is in a 3D space, direction Z is in consideration.
+                if (mySpeed.x == 0 && mySpeed.y != 0 && mySpeed.z != 0 &&
+                    speedFromMessage.x != 0 && speedFromMessage.y != 0 && speedFromMessage.z != 0){
+                    resPosition.x = myCoord.x;
+                    resPosition.y = positionFromMessage.y + speedFromMessage.y * (myCoord.x - positionFromMessage.x) / speedFromMessage.x;
+                    resPosition.z = positionFromMessage.z + speedFromMessage.z * (myCoord.x - positionFromMessage.x) / speedFromMessage.x;
+                    intersect = true;
+                }
+                else if (mySpeed.y == 0 && mySpeed.x != 0 && mySpeed.z != 0 &&
+                         speedFromMessage.x != 0 && speedFromMessage.y != 0 && speedFromMessage.z != 0){
+                    resPosition.y = myCoord.y;
+                    resPosition.x = positionFromMessage.x + speedFromMessage.x * (myCoord.y - positionFromMessage.y) / speedFromMessage.y;
+                    resPosition.z = positionFromMessage.z + speedFromMessage.z * (myCoord.y - positionFromMessage.y) / speedFromMessage.y;
+                    intersect = true;
+                }
+                else if (mySpeed.z == 0 && mySpeed.y != 0 && mySpeed.x != 0 &&
+                         speedFromMessage.x != 0 && speedFromMessage.y != 0 && speedFromMessage.z != 0){
+                    resPosition.z = myCoord.z;
+                    resPosition.x = positionFromMessage.x + speedFromMessage.x * (myCoord.z - positionFromMessage.z) / speedFromMessage.z;
+                    resPosition.y = positionFromMessage.y + speedFromMessage.y * (myCoord.z - positionFromMessage.z) / speedFromMessage.z;
+                    intersect = true;
+                }
+                else if (speedFromMessage.x == 0 && speedFromMessage.y != 0 && speedFromMessage.z != 0 &&
+                         mySpeed.z != 0 && mySpeed.y != 0 && mySpeed.x != 0){
+                    resPosition.x = positionFromMessage.x;
+                    resPosition.y = myCoord.y + mySpeed.y * (positionFromMessage.x - myCoord.x) / mySpeed.x;
+                    resPosition.z = myCoord.z + mySpeed.z * (positionFromMessage.x - myCoord.x) / mySpeed.x;
+                    intersect = true;
+                }
+                else if (speedFromMessage.y == 0 && speedFromMessage.x != 0 && speedFromMessage.z != 0 &&
+                         mySpeed.z != 0 && mySpeed.y != 0 && mySpeed.x != 0){
+                    resPosition.y = positionFromMessage.y;
+                    resPosition.x = myCoord.x + mySpeed.x * (positionFromMessage.y - myCoord.y) / mySpeed.y;
+                    resPosition.z = myCoord.z + mySpeed.z * (positionFromMessage.y - myCoord.y) / mySpeed.y;
+                    intersect = true;
+                }
+                else if (speedFromMessage.z == 0 && speedFromMessage.x != 0 && speedFromMessage.x != 0 &&
+                         mySpeed.z != 0 && mySpeed.y != 0 && mySpeed.x != 0){
+                    resPosition.z = positionFromMessage.z;
+                    resPosition.x = myCoord.x + mySpeed.x * (positionFromMessage.z - myCoord.z) / mySpeed.z;
+                    resPosition.z = myCoord.z + mySpeed.z * (positionFromMessage.z - myCoord.z) / mySpeed.z;
+                    intersect = true;
+                }
+                else if (mySpeed.x == 0 && mySpeed.y == 0 && mySpeed.z != 0 &&
+                         speedFromMessage.x != 0 && speedFromMessage.y != 0 && speedFromMessage.z != 0){
+                    resPosition.x = myCoord.x;
+                    resPosition.y = myCoord.y;
+                    resPosition.z = positionFromMessage.z + speedFromMessage.z * (myCoord.x - positionFromMessage.x) / speedFromMessage.x;
+                    intersect = true;
+                }
+                else if (mySpeed.x == 0 && mySpeed.z == 0 && mySpeed.y != 0 &&
+                         speedFromMessage.x != 0 && speedFromMessage.y != 0 && speedFromMessage.z != 0){
+                    resPosition.x = myCoord.x;
+                    resPosition.z = myCoord.z;
+                    resPosition.y = positionFromMessage.y + speedFromMessage.y * (myCoord.x - positionFromMessage.x) / speedFromMessage.x;
+                    intersect = true;
+                }
+                else if (mySpeed.y == 0 && mySpeed.z == 0 && mySpeed.x != 0 &&
+                         speedFromMessage.x != 0 && speedFromMessage.y != 0 && speedFromMessage.z != 0){
+                    resPosition.y = myCoord.y;
+                    resPosition.z = myCoord.z;
+                    resPosition.x = positionFromMessage.x + speedFromMessage.x * (myCoord.y - positionFromMessage.y) / speedFromMessage.y;
+                    intersect = true;
+                }
+                else if (speedFromMessage.x == 0 && speedFromMessage.y == 0 && speedFromMessage.z != 0 &&
+                         mySpeed.z != 0 && mySpeed.y != 0 && mySpeed.x != 0){
+                    resPosition.x = positionFromMessage.x;
+                    resPosition.y = positionFromMessage.y;
+                    resPosition.z = myCoord.z + mySpeed.z * (positionFromMessage.x - myCoord.x) / mySpeed.x;
+                    intersect = true;
+                }
+                else if (speedFromMessage.x == 0 && speedFromMessage.z == 0 && speedFromMessage.y != 0 &&
+                         mySpeed.z != 0 && mySpeed.y != 0 && mySpeed.x != 0){
+                    resPosition.x = positionFromMessage.x;
+                    resPosition.z = positionFromMessage.z;
+                    resPosition.y = myCoord.y + mySpeed.y * (positionFromMessage.x - myCoord.x) / mySpeed.x;
+                    intersect = true;
+                }
+                else if (speedFromMessage.z == 0 && speedFromMessage.y == 0 && speedFromMessage.x != 0 &&
+                         mySpeed.z != 0 && mySpeed.y != 0 && mySpeed.x != 0){
+                    resPosition.y = positionFromMessage.y;
+                    resPosition.z = positionFromMessage.z;
+                    resPosition.x = myCoord.x + mySpeed.x * (positionFromMessage.z - myCoord.z) / mySpeed.z;
+                    intersect = true;
+                }
+                else if (speedFromMessage.z != 0 && speedFromMessage.y != 0 && speedFromMessage.x != 0 &&
+                         mySpeed.z != 0 && mySpeed.y != 0 && mySpeed.x != 0){
+                    resPosition.x = (myCoord.x * speedFromMessage.x - positionFromMessage.x * mySpeed.x) / (speedFromMessage.x - mySpeed.x);
+                    resPosition.y = (myCoord.y * speedFromMessage.y - positionFromMessage.y * mySpeed.y) / (speedFromMessage.y - mySpeed.y);
+                    resPosition.z = (myCoord.z * speedFromMessage.z - positionFromMessage.z * mySpeed.z) / (speedFromMessage.z - mySpeed.z);
+                   `intersect = true;
+                }
+                else{
+                    intersect = false;
+                    EV << "No intersection" << std::endl;
+                }
+
+                if (intersect){
+                    myTime = ( resPosition.x - myCoord.x ) / mySpeed.x;
+                    hisTime = ( resPosition.x - positionFromMessage.x ) / speedFromMessage.x;
+                    if ( myTime < 0 || hisTime < 0){
+                        EV << "No intersection" << std::endl;
+                    }
+                    else{
+                        EV << "my time: " << myTime << "his time: " << hisTime << " and position: " << resPosition << std::endl;
+                    }
+                }
+            }
+            ///////////////////////////////////////// Algorithm1 ////////////////////////////////////////////////
+
+            ///////////////////////////////////////// Algorithm2 ////////////////////////////////////////////////
             /* Algorithm2:
              * basic idea of the algorithm2: for two vehicles with position and velocity information
              *       Car1(x1,y1,z1) | V1(a1,b1,c1)  and Car1(x2,y2,z2) | V2(a2,b2,c2)
@@ -92,64 +270,67 @@ void InteractingVehicle::handleMessage(cMessage* msg)
              * step1: compute the time cost of each direction
              * step2: compute the intersection point
              * */
-            // initialize the time cost for each direction
-            double tX = INFINIT, tY = INFINIT, tZ = INFINIT;
-            // variables used to record the result.
-            veins::Coord resPosition;
-            double resTime = 0;
-            // get position and speed information of other's car and my car.
-            veins::Coord positionFromMessage = iMsg->getPosition();
-            veins::Coord speedFromMessage = iMsg->getSpeed();
-            myCoord = mobility->getPositionAt(simTime());
-            mySpeed = mobility->getCurrentDirection() * mobility->getSpeed();
+//            // initialize the time cost for each direction
+//            double tX = INFINIT, tY = INFINIT, tZ = INFINIT;
+//            // variables used to record the result.
+//            veins::Coord resPosition;
+//            double resTime = 0;
+//            // get position and speed information of other's car and my car.
+//            veins::Coord positionFromMessage = iMsg->getPosition();
+//            veins::Coord speedFromMessage = iMsg->getSpeed();
+//            myCoord = mobility->getPositionAt(simTime());
+//            mySpeed = mobility->getCurrentDirection() * mobility->getSpeed();
+//
+//            //step1
+//            if(veins::math::almost_equal(mySpeed.x, speedFromMessage.x));
+//            else tX = (positionFromMessage.x - myCoord.x) / (mySpeed.x - speedFromMessage.x);
+//            if(veins::math::almost_equal(mySpeed.y, speedFromMessage.y));
+//            else tY = (positionFromMessage.y - myCoord.y) / (mySpeed.y - speedFromMessage.y);
+//            if(veins::math::almost_equal(mySpeed.z, speedFromMessage.z));
+//            else tZ = (positionFromMessage.z - myCoord.z) / (mySpeed.z - speedFromMessage.z);
+//
+//            // if it is a 2D plane, then we only need to consider X and Y
+//            if(myCoord.z == positionFromMessage.z && mySpeed.z == speedFromMessage.z){
+//                tZ = 0;
+//                resPosition.z = 0;
+//                if(tX < 0 || tY < 0) EV << "No intersection" << std::endl;
+//                else if(tX < INFINIT
+//                        && veins::math::almost_equal(tX, tY))
+//                {
+//                    resTime = tX;
+//                    resPosition.x = myCoord.x + resTime * mySpeed.x;
+//                    resPosition.y = myCoord.y + resTime * mySpeed.y;
+//                    intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
+//                    intersectionPointRecord.insert({otherVehicleId, resPosition});
+//                }
+//                else EV << "No intersection" << std::endl;
+//            }
+//            else{// if it is in a 3D space, direction Z is in consideration.
+//                if(tX < 0 || tY < 0 || tZ <0) EV << "No intersection" << std::endl;
+//                else if(tX < INFINIT
+//                        && veins::math::almost_equal(tX, tY)
+//                        && veins::math::almost_equal(tX, tZ)){
+//                    resTime = tX;
+//                    resPosition.x = myCoord.x + resTime * mySpeed.x;
+//                    resPosition.y = myCoord.y + resTime * mySpeed.y;
+//                    resPosition.z = myCoord.z + resTime * mySpeed.z;
+//                    intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
+//                    intersectionPointRecord.insert({otherVehicleId, resPosition});
+//                }
+//                else{
+//                    EV << "No intersection" << std::endl;
+//                }
+//            }
+//            EV << "tX: " << tX <<  "tY: " << tY << "tZ: " << tZ << std::endl;
+//            EV << "time: " << resTime <<  " and position: " << resPosition << std::endl;
+//            // end of task 5
+//        }
+//        else{
+//            // cast not success
+//            EV << "Cast fails!" << std::endl;
 
-            //step1
-            if(veins::math::almost_equal(mySpeed.x, speedFromMessage.x));
-            else tX = (positionFromMessage.x - myCoord.x) / (mySpeed.x - speedFromMessage.x);
-            if(veins::math::almost_equal(mySpeed.y, speedFromMessage.y));
-            else tY = (positionFromMessage.y - myCoord.y) / (mySpeed.y - speedFromMessage.y);
-            if(veins::math::almost_equal(mySpeed.z, speedFromMessage.z));
-            else tZ = (positionFromMessage.z - myCoord.z) / (mySpeed.z - speedFromMessage.z);
+        ///////////////////////////////////// Algorithm2 //////////////////////////////////////////////////
 
-            // if it is a 2D plane, then we only need to consider X and Y
-            if(myCoord.z == positionFromMessage.z && mySpeed.z == speedFromMessage.z){
-                tZ = 0;
-                resPosition.z = 0;
-                if(tX < 0 || tY < 0) EV << "No intersection" << std::endl;
-                else if(tX < INFINIT
-                        && veins::math::almost_equal(tX, tY))
-                {
-                    resTime = tX;
-                    resPosition.x = myCoord.x + resTime * mySpeed.x;
-                    resPosition.y = myCoord.y + resTime * mySpeed.y;
-                    intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
-                    intersectionPointRecord.insert({otherVehicleId, resPosition});
-                }
-                else EV << "No intersection" << std::endl;
-            }
-            else{// if it is in a 3D space, direction Z is in consideration.
-                if(tX < 0 || tY < 0 || tZ <0) EV << "No intersection" << std::endl;
-                else if(tX < INFINIT
-                        && veins::math::almost_equal(tX, tY)
-                        && veins::math::almost_equal(tX, tZ)){
-                    resTime = tX;
-                    resPosition.x = myCoord.x + resTime * mySpeed.x;
-                    resPosition.y = myCoord.y + resTime * mySpeed.y;
-                    resPosition.z = myCoord.z + resTime * mySpeed.z;
-                    intersectionTimeRecord.insert({otherVehicleId, simTime().dbl() + resTime});
-                    intersectionPointRecord.insert({otherVehicleId, resPosition});
-                }
-                else{
-                    EV << "No intersection" << std::endl;
-                }
-            }
-            EV << "tX: " << tX <<  "tY: " << tY << "tZ: " << tZ << std::endl;
-            EV << "time: " << resTime <<  " and position: " << resPosition << std::endl;
-            // end of task 5
-        }
-        else{
-            // cast not success
-            EV << "Cast fails!" << std::endl;
         }
     }
 }
