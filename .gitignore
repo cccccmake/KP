@@ -1,1 +1,5 @@
-./tags
+./out/*
+./compile_commands.json
+./Makefile
+./simulations/results/*
+./src/libveins_project.so
