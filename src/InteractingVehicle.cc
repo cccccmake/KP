@@ -37,6 +37,8 @@ void InteractingVehicle::initialize(int stage)
         traci = mobility->getCommandInterface();
         vehicleCmdId = mobility->getVehicleCommandInterface();
         roadId = vehicleCmdId->getRoadId();
+        givenTime = par("givenTime");
+        threshold = par("threshold");
     }
     else if (stage == 1) {
         // Initializing members that require initialized other modules goes here
@@ -52,6 +54,7 @@ InterVehicleMessage* InteractingVehicle::generateMessage(){
     msg->setVehicleId(vehicleId);
     msg->setPosition(mobility->getPositionAt(simTime()));
     msg->setSpeed(mobility->getCurrentDirection() * mobility->getSpeed());
+    msg->setRoadId(roadId.c_str());
     return msg;
 }
 
@@ -71,7 +74,7 @@ void InteractingVehicle::handleMessage(cMessage* msg)
     else{
         if(InterVehicleMessage* iMsg = dynamic_cast<InterVehicleMessage*>(msg)){
             // cast success
-            EV << "Received by " << vehicleId << ", speed, position: " << mobility->getCurrentDirection() * mobility->getSpeed() << " | " << mobility->getPositionAt(simTime()) << ", Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", and Speed -> " << iMsg->getSpeed() << std::endl;
+            EV << "Received by " << vehicleId << ", speed, position: " << mobility->getCurrentDirection() * mobility->getSpeed() << " | " << mobility->getPositionAt(simTime()) << ", Message from: VehicleId -> " << iMsg->getVehicleId() << " , Position -> " << iMsg->getPosition() << ", Speed -> " << iMsg->getSpeed() << " and roadId -> " << iMsg->getRoadId() << std::endl;
             otherVehicleId = iMsg->getVehicleId();
             // Start of the task5
             /* Algorithm1:
@@ -144,6 +147,9 @@ void InteractingVehicle::handleMessage(cMessage* msg)
                     }
                     else{
                         EV << "my time: " << myTime << "his time: " << hisTime << " and position: " << resPosition << std::endl;
+                        visualization_TimeDiff(myTime, hisTime, threshold);
+                        visualization_GivenTime(myTime, givenTime);
+                        visualization_Brake(mobility, iMsg, myTime, threshold);
                     }
                 }
             }
@@ -238,7 +244,7 @@ void InteractingVehicle::handleMessage(cMessage* msg)
                     resPosition.x = (myCoord.x * speedFromMessage.x - positionFromMessage.x * mySpeed.x) / (speedFromMessage.x - mySpeed.x);
                     resPosition.y = (myCoord.y * speedFromMessage.y - positionFromMessage.y * mySpeed.y) / (speedFromMessage.y - mySpeed.y);
                     resPosition.z = (myCoord.z * speedFromMessage.z - positionFromMessage.z * mySpeed.z) / (speedFromMessage.z - mySpeed.z);
-                   `intersect = true;
+                    intersect = true;
                 }
                 else{
                     intersect = false;
@@ -253,6 +259,9 @@ void InteractingVehicle::handleMessage(cMessage* msg)
                     }
                     else{
                         EV << "my time: " << myTime << "his time: " << hisTime << " and position: " << resPosition << std::endl;
+                        visualization_TimeDiff(myTime, hisTime, threshold);
+                        visualization_GivenTime(myTime, givenTime);
+                        visualization_Brake(mobility, iMsg, myTime, threshold);
                     }
                 }
             }
@@ -331,6 +340,34 @@ void InteractingVehicle::handleMessage(cMessage* msg)
 
         ///////////////////////////////////// Algorithm2 //////////////////////////////////////////////////
 
+        }
+    }
+}
+
+void InteractingVehicle::visualization_TimeDiff(double myTime, double hisTime, double threshold){
+    if(myTime > 0 && hisTime > 0 && std::abs(myTime - hisTime) < threshold)
+        getParentModule()->bubble("The time difference is below the threshold!");
+}
+
+void InteractingVehicle::visualization_GivenTime(double myTime, double givenTime){
+    if(myTime > 0 && myTime < givenTime){
+        std::string init("The potential collision is below the given time! Estimated time is: ");
+        std::string toAppend(std::to_string(myTime));
+        const char * text = (init.append(toAppend).c_str());
+        getParentModule()->bubble(text);
+    }
+}
+
+void InteractingVehicle::visualization_Brake(veins::TraCIMobility* mobility, InterVehicleMessage* msg, double myTime, double threshold){
+    const char* tempRoadId = msg->getRoadId();
+    std::string hisRoadId = tempRoadId;
+    if(mobility->getRoadId() == "-gneE1" && hisRoadId == "-gneE2"){
+        double currentSpeed = mobility->getSpeed();
+        if(myTime > 0 && myTime < threshold){
+            DemoBaseApplLayer::traciVehicle->setSpeed(0);
+        }
+        else if(myTime < 0){
+            DemoBaseApplLayer::traciVehicle->setSpeed(currentSpeed);
         }
     }
 }

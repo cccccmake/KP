@@ -52,6 +52,8 @@ protected:
     int vehicleIndex;
     int nicId;
     int interval = 1;
+    double givenTime;
+    double threshold;
     long numReceived;
     long numSent;
     simtime_t localTime;
@@ -88,6 +90,11 @@ protected:
      */
     virtual void handleSelfMsg(cMessage* msg);
 
+    virtual void visualization_TimeDiff(double myTime, double hisTime, double threshold);
+
+    virtual void visualization_GivenTime(double myTime, double givenTime);
+
+    virtual void visualization_Brake(veins::TraCIMobility* mobility, InterVehicleMessage* msg, double resTime, double threshold);
 };
 
 #endif
