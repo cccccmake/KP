@@ -149,7 +149,7 @@ void InteractingVehicle::handleMessage(cMessage* msg)
                         EV << "my time: " << myTime << "his time: " << hisTime << " and position: " << resPosition << std::endl;
                         visualization_TimeDiff(myTime, hisTime, threshold);
                         visualization_GivenTime(myTime, givenTime);
-                        visualization_Brake(mobility, iMsg, myTime, threshold);
+                        visualization_Brake(mobility, iMsg, myTime, hisTime, threshold);
                     }
                 }
             }
@@ -261,7 +261,7 @@ void InteractingVehicle::handleMessage(cMessage* msg)
                         EV << "my time: " << myTime << "his time: " << hisTime << " and position: " << resPosition << std::endl;
                         visualization_TimeDiff(myTime, hisTime, threshold);
                         visualization_GivenTime(myTime, givenTime);
-                        visualization_Brake(mobility, iMsg, myTime, threshold);
+                        visualization_Brake(mobility, iMsg, myTime, hisTime, threshold);
                     }
                 }
             }
@@ -358,7 +358,7 @@ void InteractingVehicle::visualization_GivenTime(double myTime, double givenTime
     }
 }
 
-void InteractingVehicle::visualization_Brake(veins::TraCIMobility* mobility, InterVehicleMessage* msg, double myTime, double threshold){
+void InteractingVehicle::visualization_Brake(veins::TraCIMobility* mobility, InterVehicleMessage* msg, double myTime, double hisTime, double threshold){
     const char* tempRoadId = msg->getRoadId();
     std::string hisRoadId = tempRoadId;
     if(mobility->getRoadId() == "-gneE1" && hisRoadId == "-gneE2"){
@@ -366,7 +366,7 @@ void InteractingVehicle::visualization_Brake(veins::TraCIMobility* mobility, Int
         if(myTime > 0 && myTime < threshold){
             DemoBaseApplLayer::traciVehicle->setSpeed(0);
         }
-        else if(myTime < 0){
+        else if(hisTime < 0){
             DemoBaseApplLayer::traciVehicle->setSpeed(currentSpeed);
         }
     }

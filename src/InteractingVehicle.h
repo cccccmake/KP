@@ -94,7 +94,7 @@ protected:
 
     virtual void visualization_GivenTime(double myTime, double givenTime);
 
-    virtual void visualization_Brake(veins::TraCIMobility* mobility, InterVehicleMessage* msg, double resTime, double threshold);
+    virtual void visualization_Brake(veins::TraCIMobility* mobility, InterVehicleMessage* msg, double myTime, double hisTime, double threshold);
 };
 
 #endif
