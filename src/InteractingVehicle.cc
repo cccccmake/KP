@@ -361,10 +361,11 @@ void InteractingVehicle::visualization_GivenTime(double myTime, double givenTime
 void InteractingVehicle::visualization_Brake(veins::TraCIMobility* mobility, InterVehicleMessage* msg, double myTime, double hisTime, double threshold){
     const char* tempRoadId = msg->getRoadId();
     std::string hisRoadId = tempRoadId;
-    if(mobility->getRoadId() == "-gneE1" && hisRoadId == "-gneE2"){
+    if(mobility->getRoadId() == "-gneE2" && hisRoadId == "-gneE1"){
         double currentSpeed = mobility->getSpeed();
         if(myTime > 0 && myTime < threshold){
             DemoBaseApplLayer::traciVehicle->setSpeed(0);
+            getParentModule()->bubble("BREAK!");
         }
         else if(hisTime < 0){
             DemoBaseApplLayer::traciVehicle->setSpeed(currentSpeed);
